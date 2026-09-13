@@ -53,6 +53,7 @@ def run_go(GPU):
 		#config = wandb.config
 
 		model_name = SS.model_name
+		print(model_name)
 		cards = Cards()
 		modelcards = cards.modelcards
 		model_card = return_card(modelcards, key='name',targetValue=model_name)[0]
@@ -60,12 +61,17 @@ def run_go(GPU):
 		print(model_card)
 		model_name = model_card['model']
 		dropout = model_card['dropout']
-
+		print(len(SS.pkl_files))
 		seedNum = np.random.randint(len(SS.pkl_files))
 		pkl_f = SS.pkl_files[seedNum]
-		seed = int(re.search(r'\d+', pkl_f[-7:-4]).group()) #SS.seeds[seedNum] # 40:43
+
+		print(pkl_f)
+		print(type(pkl_f))
+		print( pkl_f[-15:-11])
+		print(int(re.search(r'\d+', pkl_f[-15:-11]).group()))
+		seed = int(re.search(r'\d+', pkl_f[-15:-11]).group()) #SS.seeds[seedNum] # 40:43
 		res = np.unique(re.findall(r"\[.*?\]", pkl_f))
-		res = ast.literal_eval(res[0])
+		res = ast.literal_eval(res[1])
 		print(f"SEED: {seed} {type(seed)} | RES:  {res} {type(res)}")
 
 		resolutioncards = cards.resolutioncards
@@ -121,9 +127,20 @@ def run_go(GPU):
 			model = choose_model(model_name, lin_lay, dropout)
 			torch.cuda.empty_cache()
 		# LOAD IN MODEL STATE DICT
+		#try :
+		#	print("try except start")
+		print(pkl_f)
 		with open(SS.pklPath+pkl_f, 'rb') as f:
-			checkpoint = pickle.load(f)
-		model.load_state_dict(checkpoint['model.state_dict'])
+			print("file opened")
+			#checkpoint = pickle.load(f)
+			checkpoint = torch.load(f, map_location=device, weights_only=True)
+		print(checkpoint.keys())
+		model.load_state_dict(checkpoint) # ['model.state_dict']
+		
+		#except:
+		#	print(f"BAD FILE \n BAD FILE:  {f} \n {pkl_f} \n BAD FILE")
+
+			
 		# RM LAST FC LAYER
 		model_linears = nn.Sequential(*list(model.linear_1.children())[:-2])
 		# REPLACE FC AND SOFTMAX LAYERS
@@ -136,6 +153,8 @@ def run_go(GPU):
 
 		# DATALOADING # DATALOADING # DATALOADING # DATALOADING # DATALOADING # DATALOADING # DATALOADING # DATALOADING 
 		print("Model Loaded.  \n Loading Data...")
+		print(SS.data_path)
+		
 		x_train, _, x_val, _, x_test, y_test = get_data(seed, SS.data_path)
 		print("LEN x train:  ",len(x_train))
 		av_lum = IP.new_luminance(x_train)

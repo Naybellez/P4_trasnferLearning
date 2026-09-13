@@ -1,8 +1,8 @@
 # model managment functions
 import torch
 import torch.nn as nn
-from Dir_learning.P4_transferLearning.P1_Returns.src.architectures import PrintLayer#, Flattern
-from Dir_learning.P4_transferLearning.P1_Returns.src.architectures import sevennet, eightnnet, sixnet, smallnet1, smallnet2, smallnet3
+from src.architectures import PrintLayer#, Flattern
+from src.architectures import sevennet, eightnnet, sixnet, smallnet1, smallnet2, smallnet3
 #from torchvision.models import vgg16
 import torch.nn.functional as F
 import pickle

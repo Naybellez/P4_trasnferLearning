@@ -36,11 +36,14 @@ def get_data(random_seed, file_path:str, locations=[1,2,3,4,5,6,7,8,9,10,11]):
         raise TypeError("get_data requires file path argument")
     elif not isinstance(file_path, str):
         raise TypeError(f"get_data requires file path as string not {type(file_path)}")
-    #print(file_path)
+    print(file_path)
     img_len = len(os.listdir(file_path))
+    print(f"{img_len} Images!")
     x, y = import_imagedata(file_path, locations)
+    print("images imported")
     x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.3, train_size=0.7,
                                      random_state=random_seed, shuffle=True)
+    print("split one")
     x_train, x_val, y_train, y_val = train_test_split(x_train,y_train, test_size=0.3, train_size=0.7,
                                      random_state=random_seed, shuffle=True)
     return x_train, y_train, x_val, y_val, x_test, y_test

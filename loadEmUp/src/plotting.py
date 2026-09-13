@@ -1,6 +1,8 @@
 # file for  plots
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # do this before importing pyplot
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score, accuracy_score, confusion_matrix, ConfusionMatrixDisplay
 import pickle

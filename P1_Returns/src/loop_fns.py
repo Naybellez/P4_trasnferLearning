@@ -18,11 +18,11 @@ from torch.nn import functional
 #import torchvision.transforms as transforms
 
 #from tqdm import tqdm
-
+from tqdm import  tqdm
 import sys
 sys.path.append('../.')
-from Dir_learning.P4_transferLearning.P1_Returns.src.functions import ImageProcessor,label_oh_tf
-from Dir_learning.P4_transferLearning.P1_Returns.src.modelManagment import choose_scheduler
+from src.functions import ImageProcessor,label_oh_tf
+from src.modelManagment import choose_scheduler
 #import wandb
 #
 
@@ -204,7 +204,7 @@ def loop_batch(model, data, loss_fn, batch_size, sample,random_value,epoch,loop_
     model = model #.
     total_samples = len(data)
     if optimizer: # need a choose scheduler function!
-        print("Optimizer present: ",optimizer)
+        #print("Optimizer present: ",optimizer)
         scheduler = choose_scheduler(save_dict, optimizer)
     if train:
         model.train()
@@ -281,8 +281,8 @@ def test_loop_batch(model,data, loss_fn, batch_size, device):
                 #print(len(label), label[0].argmax(), len(label)-1)
                 if label[i].argmax() == prediction[i].argmax():
                     num_correct +=1
-            [predict_list.append(pred.argmax().to('cpu').item()) for pred in prediction]
-            [label_list.append(lab.argmax().to('cpu').item()) for lab in label]
+            [predict_list.append(pred.to('cpu')) for pred in prediction]
+            [label_list.append(lab.to('cpu')) for lab in label]
             print("in test bAtch post list comprehension. pred:", len(predict_list), "lab:", len(label_list))
             total_count += batch_size
             #correct +=(prediction.argmax()==label.argmax()).sum().item()
@@ -375,4 +375,4 @@ def train_val_batch(model, train, val, loop_run_name, save_dict, lr, loss_fn, ep
     
     return model, save_dict
 
-from Dir_learning.P4_transferLearning.P1_Returns.src.functions import ImageProcessor
+#from Dir_learning.P4_transferLearning.P1_Returns.src.functions import ImageProcessor

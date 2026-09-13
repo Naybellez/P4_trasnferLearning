@@ -1,4 +1,5 @@
 import argparse
+from src.Setup import setup
 
 parser = argparse.ArgumentParser()
 
@@ -7,5 +8,5 @@ args = parser.parse_args()
 
 print(f"P1 REVISITED.     GPU CHOSEN  {args.GPU}")
 
-from Dir_learning.P4_transferLearning.P1_Returns.src.Setup import setup
+
 setup(args.GPU)

@@ -6,6 +6,8 @@ import os
 import cv2
 from PIL import Image
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # do this before importing pyplot
 import matplotlib.pyplot as plt
 import random
 

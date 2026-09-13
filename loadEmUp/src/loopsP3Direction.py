@@ -424,7 +424,7 @@ def train_val_batch(model, train, val, save_dict, loss_fn, epochs, optimizer, de
     save_dict['t_predict_list'] = t_predict_list 
     save_dict['v_predict_list'] = v_predict_list  #
     if epoch %100==0 and epoch !=0 and epoch != int(save_dict['start_epoch']):
-        save2json(save_dict, f"{save_dict['model_name']}_{epochs}_", save_dict['save_location'])
-        torch.save(model.state_dict, f"{save_dict['save_location']}_{save_dict['model_name']}_{epochs}_{save_dict['seed']}.pkl")
+        save2json(save_dict, f"{save_dict['model_name']}_{epoch}_", save_dict['save_location'])
+        torch.save(model.state_dict, f"{save_dict['save_location']}_{save_dict['model_name']}_{epoch}_{save_dict['seed']}.pkl")
     return model, save_dict
 

@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import cv2
 from datetime import date
-from tdqm import tdqm
+from tqdm import tqdm
 import collections
 import time
 import random
@@ -21,38 +21,38 @@ import os
 import sys
 sys.path.append('../.')
 #
-from Dir_learning.P4_transferLearning.P1_Returns.src.functions import import_imagedata, ImageProcessor, label_oh_tf, IDSWDataSetLoader2
-from fns4wandb import set_lossfn
-from Dir_learning.P4_transferLearning.P1_Returns.src.architectures import sevennet, smallnet1, smallnet2, smallnet3, PrintLayer
-from Dir_learning.P4_transferLearning.P1_Returns.src.loop_fns import loop, train_val_batch, test_loop_batch#, loop_batch, test_loop_batch
-from plotting import learning_curve, accuracy_curve, plot_confusion
-from Dir_learning.P4_transferLearning.P1_Returns.src.modelManagment import choose_model
-from Dir_learning.P4_transferLearning.P1_Returns.src.fileManagment import save2csv,save2json
-
-from Dir_learning.P4_transferLearning.P1_Returns.src.modelCards import get_lin_lay
+from src.functions import get_data, import_imagedata, ImageProcessor, label_oh_tf, IDSWDataSetLoader2
+from loadEmUp.src.fns4wandb import set_lossfn
+#from src.architectures import sevennet, smallnet1, smallnet2, smallnet3, PrintLayer
+from src.loop_fns import loop, train_val_batch, test_loop_batch#, loop_batch, test_loop_batch
+from loadEmUp.src.plotting import learning_curve, accuracy_curve, plot_confusion
+from src.modelManagment import choose_model
+from src.fileManagment import save2csv,save2json
+from src.modelCards import get_lin_lay
 
 def run_p1r(GPU):
     if GPU == 0:
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        import Dir_learning.P4_transferLearning.P1_Returns.Settings.Settings0 as SS
+        import Settings.Settings0 as SS
     elif GPU == 1:
         device = "cuda:1" if torch.cuda.is_available() else "cpu"
-        import Dir_learning.P4_transferLearning.P1_Returns.Settings.Settings1 as SS
-    print(f"run_go:  {GPU}    {device}")
+        import Settings.Settings1 as SS
+    #print(f"run_go:  {GPU}    {device}")
     torch.cuda.empty_cache()
 
     def _go():
         
-        model_card = SS.model_card
+        model_card = SS.modelcard
         print(model_card)
-        model_name = SS.model_card['model']
+        model_name = SS.modelcard['model']
         dropout = model_card['dropout']
+        seednum = np.random.randint(len(SS.seeds))
+        seed = int(SS.seeds[seednum])
 
         for res_idx, resolution_card in enumerate(SS.all_recards):
             # local references to settings
             lin_lay = get_lin_lay(model_card, resolution_card['resolution'])
-            seednum = np.random.randint(len(SS.seeds))
-            seed = SS.seeds[seednum]
+            
             pad = resolution_card['padding']
             # print simulation settings
             print(f"MODEL  {model_name}")
@@ -70,6 +70,7 @@ def run_p1r(GPU):
                          'save_location': str(SS.save_location),
                          'model_name':str(model_name),
                          'loss_fn': SS.loss_fn,
+                         'scheduler': "NoSched",
                          'lr': str(SS.learning_rate),
                         'resolution': str(resolution_card['resolution']),
                         'seed':str(seed),
@@ -83,7 +84,7 @@ def run_p1r(GPU):
             torch.cuda.empty_cache()
 
             # data
-            x_train, y_train, x_val, y_val, x_test, y_test = train_test_split(seed, SS.datapath)
+            x_train, y_train, x_val, y_val, x_test, y_test = get_data(seed, SS.datapath)
             print(f"Len Xtrain   {len(x_train)}")
             av_lum = IP.new_luminance(x_train)
             train_ds = IDSWDataSetLoader2(x_train, y_train, resolution_card['resolution'], pad, av_lum, model_name, device)
@@ -95,12 +96,14 @@ def run_p1r(GPU):
             print("After data loading - Current allocated memory (GB):", torch.cuda.memory_allocated() / 1024 ** 3)
 
             loss_fn = set_lossfn(SS.loss_fn)
-            optimizer = torch.optim.Adam(model.parameters(), lr=SS.lr)
-            loop_run_name = f"{save_dict['Run']}_{resolution_card['resolution']}_{SS.lr}_{seed}_{SS.loss_fn}"
+            optimizer = torch.optim.Adam(model.parameters(), lr=SS.learning_rate)
+            loop_run_name = f"{save_dict['Run']}_{resolution_card['resolution']}_{SS.learning_rate}_{seed}_{SS.loss_fn}"
             # TRAINING
-            model, save_dict = train_val_batch(model, train, val, loop_run_name, save_dict, SS.lr, loss_fn, SS.epochs, SS.batchsize, optimizer, scheduler_value=None, device=device)
+            print("Training...")
+            model, save_dict = train_val_batch(model, train, val, loop_run_name, save_dict, SS.learning_rate, loss_fn, SS.epochs, SS.batchsize, optimizer, scheduler_value=None, device=device)
             #TESTING
-            test_acc,test_predict_list, y_test = test_loop_batch(model,test, loss_fn, SS.batch_size, device)
+            print("Testing...")
+            test_acc,test_predict_list, y_test = test_loop_batch(model,test, loss_fn, SS.batchsize, device)
             save_dict.update({'test_acc': test_acc})
             save_dict.update({'test_predict': test_predict_list})
             save_dict.update({'test_labels': list(y_test)})
@@ -108,8 +111,8 @@ def run_p1r(GPU):
             
             learning_curve(save_dict['t_loss_list'], save_dict['v_loss_list'], save_location=save_dict['save_location'],run_name=loop_run_name)
             accuracy_curve(save_dict['t_accuracy_list'], save_dict['v_accuracy_list'],save_location=save_dict['save_location'],run_name=loop_run_name)
-            test_predict_list=[pred.cpu() for pred in test_predict_list]
-            plot_confusion(predictions= test_predict_list, actual= y_test, title = "Test Confusion matrix", run_name = loop_run_name,save_location =save_dict['save_location'])
+            test_predict_list=[pred for pred in test_predict_list]
+            #plot_confusion(predictions= test_predict_list, actual= y_test, title = "Test Confusion matrix", run_name = loop_run_name,save_location =save_dict['save_location'])
 
             diction = {}
             d = date.today()
@@ -120,7 +123,7 @@ def run_p1r(GPU):
             diction.update({'loss_fn': str(SS.loss_fn)})
             diction.update({'lr': str(SS.learning_rate)})
             #diction.update({'wd': str(wd_card)})
-            #diction.update({'scheduler value': str(scheduler_value)})
+            
             diction.update({'seed': str(seed)})
             diction.update({'resolution': str(resolution_card['resolution'])})
             diction.update({'pad': int(pad)})
@@ -133,11 +136,13 @@ def run_p1r(GPU):
             save2json(diction, loop_run_name, save_location)
             save2csv(diction, title, save_location)
 
-            diction['model.state_dict'] = model.state_dict() #to('cpu').
+            """diction['model.state_dict'] = model.state_dict() #to('cpu').
 
             with open(f"{save_location}{loop_run_name}.pkl", 'wb+') as f:
-                pickle.dump(diction, f)
-            
+                pickle.dump(diction, f)"""
+            torch.save(model.state_dict(), f"{SS.save_location}{loop_run_name}.pkl")
+            del model
+            torch.cuda.empty_cache()
 
-
+    _go()
 

@@ -134,6 +134,7 @@ class IDSWDataSetLoader3(Dataset):
         #print(f" pixel offset of  {pixelOffset}  {im.shape}")
         im = cv2.resize(im, (self.res[0], self.res[1]))
         #print(f"resized {im.shape}")
+        #print("pad value: ",self.pad)
         if self.pad > 0: 
             im = self.padding(img=im, pad_size=self.pad)
         if vg:

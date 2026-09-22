@@ -51,27 +51,36 @@ def save2josn_nested_dict(nested_dict, file_name, save_location:str):
 
 def save2csv(nested_dict, file_name, save_location:str):
     import pandas as pd
-    nested_dict = check_obj4np(nested_dict)
+    nested_dict0 = check_obj4np(nested_dict)
+    nested_dict = pd.DataFrame({k:pd.Series(v) for k,v in nested_dict0.items()})
+    print("NESTED DICT   ", type(nested_dict), len(nested_dict), nested_dict.keys())
     nested_dict = pd.DataFrame(nested_dict)
-    print("nests dict dataframe")
+    #print("nests dict dataframe")
     #nested_dict.explode(['test_predict', 'test_labels']).reset_index(drop=True)
     columns = list(nested_dict.keys())
+    #print(f"columns {columns}")
     path = os.path.join(save_location, file_name +".csv")
-    try:
+    #print(f"path  {path}")
+    """try:
         with open(path, "a", newline="") as f:
+            print("opening...")
             writer = csv.DictWriter(f, fieldnames=columns)
+            print("Writer made...")
             # using dictwriter
             # using writeheader function
             if f.tell() == 0:
                 writer.writeheader()
             writer.writerow(nested_dict)
-            f.close()
+            print("row written")
+            f.close()"
     except IOError as e:
         print("I/O error({0}): {1}".format(e.errno, e.strerror))
     except ValueError:
               print("could not convert to string")
     except:
-              print("unexpected error: ", sys.exc_info()[0])
+              print("unexpected error: ", sys.exc_info()[0])"""
+    write_header = not os.path.exists(path) or os.path.getsize(path) == 0
+    nested_dict.to_csv(path, mode="a", header=write_header, index=False)
  
 def save2json(nested_dict, file_name, save_location:str):
     nested_dict = check_obj4np(nested_dict)

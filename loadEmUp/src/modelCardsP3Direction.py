@@ -15,7 +15,7 @@ class Cards:
         model_card_10c4l = {'name': '10c4l', 'model' : '10c4l', 'channels':3, 'ks':(3, 5),
                            'f_lin_lay': [110592, # 452, 144
                                        20480,   # 113, 36
-                                       3072,   # 226, 72
+                                       30720,   # 226, 72
                                        71680,    # 57, 18
                                        71680,  # 29, 9
                                        71680,  # 15, 5
@@ -28,7 +28,7 @@ class Cards:
                           'f_lin_lay':[244224,   # 452 144 (32x244224 and 248832x100) (32x244224 and 248832x100)
                                     55296,      # 226 72 
                                     12800,      # 113 36
-                                    1536,       # 57 18 
+                                    15360,       # 57 18 
                                     172032,     # 29 9 
                                     172032,     # 15 5  
                                     172032,     # 8 3
@@ -41,7 +41,7 @@ class Cards:
                           'f_lin_lay':[244224,    # 452 144 
                                     55296,        # 226 72
                                     10240,        # 113 36
-                                    1536,         # 57 18 
+                                    15360,         # 57 18 
                                     172032,       # 29 9
                                     172032,       # 15 5
                                     172032,       # 8 3
@@ -52,7 +52,7 @@ class Cards:
         model_card_6c3l = {'name': '6c3l', 'model': '6c3l', 'channels': 3, 'Ks': (3,5),
                           'f_lin_lay':[267520,   # 452 144 
                                     66560,      # 226 72 
-                                    15360,      # 113 36 
+                                    15360,      # 113 36 15360 (32x15360 and 16640x100)
                                     3840,       # 57 18 
                                     1024,       # 29 9
                                     193024,     # 15 5 
@@ -125,27 +125,35 @@ class Cards:
 
 
 def get_lin_lay(model_card, resolution):
-    if resolution == [452, 144]:
+    print(f"get_lin_lay got passed resolution:  {resolution}, {type(resolution)}")
+    if resolution == "[452, 144]":
         lin_lay = model_card['f_lin_lay'][0]
-    elif resolution == [226, 72]:
+        return lin_lay
+    elif resolution == "[226, 72]":
         lin_lay = model_card['f_lin_lay'][1]
-    elif resolution == [113, 36]:
+        return lin_lay
+    elif resolution == "[113, 36]":
         lin_lay = model_card['f_lin_lay'][2]
-    elif resolution == [57, 18]:
+        return lin_lay
+    elif resolution == "[57, 18]":
         lin_lay = model_card['f_lin_lay'][3]
-    elif resolution == [29, 9]:
+        return lin_lay
+    elif resolution == "[29, 9]":
         lin_lay = model_card['f_lin_lay'][4]
-    elif resolution == [15, 5]:
+        return lin_lay
+    elif resolution == "[15, 5]":
         lin_lay = model_card['f_lin_lay'][5]
-    elif resolution == [8, 3]:
+        return lin_lay
+    elif resolution == "[8, 3]":
         lin_lay = model_card['f_lin_lay'][6]
+        return lin_lay
     else:
         print("PARAMETER NOT FOUND: \n f_lin_lay FROM MODEL CARD")
-    return lin_lay
+        #return lin_lay
     
 def return_card(modelcards, key:str, targetValue:str):
     #for card in modelcards:
     #    if card['name'] == modelname:
     #        return card
-    return [card for card in modelcards if card[key]== targetValue]
+    return [card for card in modelcards if str(card[key])==str(targetValue)]
         

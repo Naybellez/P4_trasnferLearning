@@ -18,7 +18,7 @@ class Cards:
                           'f_lin_lay':[248832,    # 452 144 
                                     59904,        # 226 72
                                     11264,        # 113 36
-                                    1536,         # 57 18 
+                                    15360,         # 57 18 
                                     172032,       # 29 9
                                     172032,       # 15 5
                                     172032,       # 8 3
@@ -88,13 +88,13 @@ class Cards:
         
         self.modelcards =[model_card_vgg,model_card_7c3l,model_card_6c3l,model_card_8c3l,model_card_4c3l,model_card_3c2l,model_card_2c2l]
         
-        resolution_card_452144 = {'resolution':[452,144], 'padding':5, 'index':0}
-        resolution_card_22672 = {'resolution':[226,72], 'padding':5, 'index':1}
-        resolution_card_11336 = {'resolution':[113,36], 'padding':2, 'index':2}
-        resolution_card_5715 = {'resolution':[57,18], 'padding':1, 'index':3}
-        resolution_card_299 = {'resolution':[29,9], 'padding':0, 'index':4} # 
-        resolution_card_155 = {'resolution':[15,5], 'padding':0, 'index':5}
-        resolution_card_83 = {'resolution':[8,3], 'padding':0, 'index':6}
+        resolution_card_452144 = {'resolution':[452, 144], 'padding':5, 'index':0}
+        resolution_card_22672 = {'resolution':[226, 72], 'padding':5, 'index':1}
+        resolution_card_11336 = {'resolution':[113, 36], 'padding':2, 'index':2}
+        resolution_card_5715 = {'resolution':[57, 18], 'padding':1, 'index':3}
+        resolution_card_299 = {'resolution':[29, 9], 'padding':0, 'index':4} # 
+        resolution_card_155 = {'resolution':[15, 5], 'padding':0, 'index':5}
+        resolution_card_83 = {'resolution':[8, 3], 'padding':0, 'index':6}
         
         self.resolutioncards =[resolution_card_452144, resolution_card_22672, resolution_card_11336, resolution_card_5715, resolution_card_299, resolution_card_155, resolution_card_83]
 
@@ -112,24 +112,30 @@ class Cards:
 
 
 def get_lin_lay(model_card, resolution):
-    if resolution == [452, 144]:
+    print(f"get_lin_lay  {resolution}   {type(resolution)}")
+    lin_lay= None
+    if resolution == "[452, 144]":
         lin_lay = model_card['f_lin_lay'][0]
-    elif resolution == [226, 72]:
+    elif resolution == "[226, 72]":
         lin_lay = model_card['f_lin_lay'][1]
-    elif resolution == [113, 36]:
+    elif resolution == "[113, 36]":
         lin_lay = model_card['f_lin_lay'][2]
-    elif resolution == [57, 18]:
+    elif resolution == "[57, 18]":
         lin_lay = model_card['f_lin_lay'][3]
-    elif resolution == [29, 9]:
+    elif resolution == "[29, 9]":
         lin_lay = model_card['f_lin_lay'][4]
-    elif resolution == [15, 5]:
+    elif resolution == "[15, 5]":
         lin_lay = model_card['f_lin_lay'][5]
-    elif resolution == [8, 3]:
+    elif resolution == "[8, 3]":
         lin_lay = model_card['f_lin_lay'][6]
     else:
         print("PARAMETER NOT FOUND: \n f_lin_lay FROM MODEL CARD")
+    if lin_lay == None:
+        print("Could not match Linlay")
     return lin_lay
     
     
-def return_card(modelcards, key:str, targetValue:str):
-	return [card for card in modelcards if card[key]==targetValue]
+def return_card(resolutioncards, key:str, targetValue:list):
+    #for card in resolutioncards:
+    #    print(repr(card[key]), repr(targetValue), card[key] == targetValue, str(card[key]) == str(targetValue))
+    return [card for card in resolutioncards if str(card[key])==str(targetValue)]

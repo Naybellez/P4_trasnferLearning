@@ -1,5 +1,12 @@
 import sys
+import os
 sys.path.append('../../.')
+from src.modelCards import get_lin_lay, Cards, return_card
+
+from src.runCAM import run_CAM
+import numpy as np
+import re
+
 
 def setup(GPU):
 	import torch
@@ -8,47 +15,60 @@ def setup(GPU):
 		device = "cuda:0" if torch.cuda.is_available() else "cpu"
 		import SimulationSettings.SettingsCAM0  as SS
 	elif GPU == 1:
-		device = "cuda:1" if torch.cua.is_available() else "cpu"
+		device = "cuda:0" if torch.cuda.is_available() else "cpu"
 		import SimulationSettings.SettingsCAM1 as SS
 
 	print(f"CAM Setup: ", GPU, device)
 
-	#epochs =300
-	#lr ="1e-4"
-
-	cards = Cards()
-	#resolutions = [[226, 72],[113, 36],[57, 18],[29, 9],[15, 5], [8, 3]]
-
-	#model_names = ["2c2l","3c2l","4c3l","6c3l","7c3l", "8c3l", "10c4l"]
-	# "VGG16", "resnet18"]
-
 	for model_name in SS.model_names:
-		for res in SS.resolutions:
+	
+		pickle_path = SS.pickle_dir+f"{model_name}/R1_{model_name}_transfer_300E/selected/"
 
-		pickle_path = f"/its/home/nn268/antvis/antvis/CNN_DirectionLearning/saves/{res}/{model_name}/"
-		subfolder = "testingAll/clean/"
-		parentDir = "/its/home/nn268/antvis/antvis/CNN_DirectionLearning/saves/tests/CAM/"
-
-		data_path = "/its/home/nn268/antvis/antvis/optics/NC_IDSW/"
-
-
+		#modelcards = cards.modelcards
+		cards = Cards()
 		modelcards = cards.modelcards
+		print(f"setup  modelname {model_name}")
+		print(f"setup  modelname[0] {model_name[0]}")
+		model_card = return_card(modelcards, key='name',targetValue=model_name)[0]
+		#print(model_card)
 
-		modelcard = return_card(modelcards, key='name', targetValue=model_name)[0]
-		linlay = get_lin_lay(modelcard, res)
-		model = choose_model(model_name, linlay, 0, 360).to(device)
+		
 
-		pkl_seeds = get_seeds(resolution=res, modelname=model_name, picklePath=picklePath)
+		# get seeds of alreadydone training runs to avoid overwriting them
+		used_seed = []
+		for file in os.listdir(SS.pickle_dir):
+			if file.endswith(".pkl"):
+				stem = os.path.splitext(file)[0]
+				try:
+					seed = int(stem.rsplit("_", 2)[-2])
+					used_seed.append(seed)
+				except (IndexError, ValueError):
+					pass
 
-		for seed in pkl_seeds:
-			if model_name != "10c4l":
-				pickle_file = f"{model_name}_{SS.epochs}E_{SS.lr}_ADAM_{res}_{model_name}_{res}_{res}_0.0001_NoSched_{seed}_MSE.pkl"
-			else:
-				pickle_file = f"TESTING_{model_name}_{epochs}_{res}_{res}_0.0001_NoSched_{seed}_MSE.pkl"
-			CAM = CAMfromPickle(model_file=pickle_file, dir=pickle_path, data_path = data_path, model_name=model_name, seed=seed, resolution=res, subfolder=subfolder, parentDir=parentDir, device=device)
-			CAM.get_test_set()
-			CAM.fill_model(model)
-			CAM.createCAMFig()
+		# check files of input model folder and skip those with already used seeds
+		print(f"modelname  {model_name}")
+		pkl_files = []
+		for file in os.listdir(pickle_path):
+			if file[-3:] == 'pkl':
+				stem = os.path.splitext(file)[0]
+				seed = int(stem.rsplit("_", 2)[-2])
+				if seed in used_seed:
+					print(f"seed {seed} already used, skipping file {file}")
+				else:
+					pkl_files.append(file)
+		print(len(pkl_files))
+		for pickle_file in pkl_files:
+			print("loopping through pkl files")
+			res = np.unique(re.findall(r"\[.*?\]", pickle_file))
+			print(f"res {res}")
+			linlay = get_lin_lay(model_card, res[0])
+			print(linlay)
+			print(f"lin lay:  {linlay}")
+			stem = os.path.splitext(file)[0]
+			seed = int(stem.rsplit("_", 2)[-2])
+			print(f"PICKLE FILE:            {pickle_file}")
+			run_CAM(GPU, model_name, linlay, pickle_path, pickle_file, seed, res)
+				
 
 
 
